@@ -1,109 +1,100 @@
 import { useState, useRef, useEffect } from 'react';
 
-// Tag dropdown component for single/multi tags selection
+// Tag Dropdown Filter Component: Multi-tag selection aur search support karta hai
 export default function TagDropdown({ tags = [], selectedTags = [], onApplyTags }) {
   const [isOpen, setIsOpen] = useState(false);
   const [tempSelected, setTempSelected] = useState(selectedTags);
-  const [filterSearch, setFilterSearch] = useState('');
+  const [search, setSearch] = useState('');
   const dropdownRef = useRef(null);
 
-  // Sync tempSelected jab prop update ho
+  // URL query ya props change hone par local tempSelected state ko sync karta hai
   useEffect(() => {
     setTempSelected(selectedTags);
   }, [selectedTags]);
 
-  // Outside click handle karne ke liye dropdown close logic
+  // Dropdown ke bahar click karne par dropdown close karta hai aur unapplied selection discard karta hai
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
+        setTempSelected(selectedTags);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [selectedTags]);
 
-  // Dropdown ke andhar tag search filter
-  const filteredTagsList = tags.filter((t) => {
-    const tagName = typeof t === 'string' ? t : t.name || t.slug;
-    return tagName.toLowerCase().includes(filterSearch.toLowerCase());
+  // Dropdown search box ke basis par tags list filter karna
+  const filteredTags = tags.filter((t) => {
+    const name = typeof t === 'string' ? t : t.name || t.slug || '';
+    return name.toLowerCase().includes(search.toLowerCase());
   });
 
-  // Checkbox toggle handler (click karte hi filter apply ho rha h)
-  const handleCheckboxToggle = (tagSlug) => {
-    const slug = tagSlug.toLowerCase();
-    let updatedTags;
-    if (tempSelected.includes(slug)) {
-      updatedTags = tempSelected.filter((t) => t !== slug);
-    } else {
-      updatedTags = [...tempSelected, slug];
-    }
-    setTempSelected(updatedTags);
-    onApplyTags(updatedTags);
+  // Checkbox toggle handler: Sirf local state update karta hai (har tick par route push nahi hota)
+  const handleToggle = (slug) => {
+    const lowerSlug = slug.toLowerCase();
+    setTempSelected((prev) =>
+      prev.includes(lowerSlug) ? prev.filter((t) => t !== lowerSlug) : [...prev, lowerSlug]
+    );
   };
 
-  // Apply button handler
+  // 'Done' button click handler: Sabhi selected tags ek single batch me apply karta hai
   const handleApply = () => {
     onApplyTags(tempSelected);
     setIsOpen(false);
   };
 
-  // Clear all tags filter
-  const handleClearAll = () => {
+  // 'Clear All' button handler: Sabhi tags deselect karke filter reset karta hai
+  const handleClear = () => {
     setTempSelected([]);
     onApplyTags([]);
     setIsOpen(false);
   };
 
-  // Button title dynamic label
-  const getButtonLabel = () => {
-    if (selectedTags.length === 0) return 'Filter by Tags ▾';
-    if (selectedTags.length === 1) return `Tag: #${selectedTags[0]} ▾`;
-    return `Tags (${selectedTags.length} selected) ▾`;
-  };
+  const buttonLabel =
+    selectedTags.length === 0
+      ? 'Filter by tag ▾'
+      : selectedTags.length === 1
+      ? `tag: #${selectedTags[0].toLowerCase()} ▾`
+      : `tags (${selectedTags.length} selected) ▾`;
 
   return (
     <div className="tag-dropdown-wrapper" ref={dropdownRef}>
-      {/* Dropdown Trigger Button */}
+      {/* Dropdown Toggle Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`dropdown-trigger-btn ${selectedTags.length > 0 ? 'has-active-tags' : ''}`}
         aria-expanded={isOpen}
       >
-        <span className="btn-text">{getButtonLabel()}</span>
+        <span className="btn-text">{buttonLabel}</span>
       </button>
 
-      {/* Dropdown Popover Panel */}
+      {/* Popover Panel */}
       {isOpen && (
         <div className="dropdown-panel">
-          {/* Header */}
           <div className="panel-header">
-            <span className="panel-title">Filter by Tags</span>
+            <span className="panel-title">Filter by tag</span>
             {tempSelected.length > 0 && (
-              <span className="selected-count-badge">
-                {tempSelected.length} selected
-              </span>
+              <span className="selected-count-badge">{tempSelected.length} selected</span>
             )}
           </div>
 
-          {/* Search Box Inside Dropdown */}
           <div className="panel-search">
             <input
               type="text"
-              placeholder="Search tags..."
-              value={filterSearch}
-              onChange={(e) => setFilterSearch(e.target.value)}
+              placeholder="search tags..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="panel-search-input"
             />
           </div>
 
-          {/* Tags List with Checkboxes */}
           <div className="panel-tags-list">
-            {filteredTagsList.length === 0 ? (
+            {filteredTags.length === 0 ? (
               <div className="no-tags-found">No matching tags</div>
             ) : (
-              filteredTagsList.map((t) => {
+              filteredTags.map((t) => {
                 const slug = (typeof t === 'string' ? t : t.slug || t.name).toLowerCase();
                 const name = typeof t === 'string' ? t : t.name || t.slug;
                 const isChecked = tempSelected.includes(slug);
@@ -112,7 +103,7 @@ export default function TagDropdown({ tags = [], selectedTags = [], onApplyTags 
                   <div
                     key={slug}
                     className={`tag-option-item ${isChecked ? 'selected' : ''}`}
-                    onClick={() => handleCheckboxToggle(slug)}
+                    onClick={() => handleToggle(slug)}
                   >
                     <input
                       type="checkbox"
@@ -120,16 +111,15 @@ export default function TagDropdown({ tags = [], selectedTags = [], onApplyTags 
                       onChange={() => {}}
                       className="tag-checkbox"
                     />
-                    <span className="tag-name">#{name}</span>
+                    <span className="tag-name">#{String(name).toLowerCase()}</span>
                   </div>
                 );
               })
             )}
           </div>
 
-          {/* Footer Actions */}
           <div className="panel-footer">
-            <button type="button" onClick={handleClearAll} className="clear-btn">
+            <button type="button" onClick={handleClear} className="clear-btn">
               Clear All
             </button>
             <button type="button" onClick={handleApply} className="apply-btn">
@@ -141,3 +131,4 @@ export default function TagDropdown({ tags = [], selectedTags = [], onApplyTags 
     </div>
   );
 }
+

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Layout from '../../components/Layout';
 import { fetchPostById, fetchPosts, calculateReadingTime } from '../../lib/api';
 
-// SSG paths pre-render karne ke liye (first 30 posts)
+// SSG (Static Site Generation): Top 30 posts ke paths build time par pre-render karta hai
 export async function getStaticPaths() {
   try {
     const data = await fetchPosts({ limit: 30, skip: 0 });
@@ -11,48 +11,39 @@ export async function getStaticPaths() {
       params: { id: String(post.id) },
     }));
 
-    return {
-      paths,
-      fallback: 'blocking',
-    };
+    // fallback: blocking se agar koi path pre-render nahi hai toh server par render hoke cache ho jayega
+    return { paths, fallback: 'blocking' };
   } catch (error) {
     console.error('Error in getStaticPaths:', error);
-    return {
-      paths: [],
-      fallback: 'blocking',
-    };
+    return { paths: [], fallback: 'blocking' };
   }
 }
 
-// Single post data fetch for page pre-rendering (ISR revalidate 300s)
+// ISR (Incremental Static Regeneration): Single post data fetch karta hai aur 300s (5 min) par revalidate karta hai
 export async function getStaticProps({ params }) {
   const postId = Number(params?.id);
-
   if (!Number.isInteger(postId) || postId < 1) {
     return { notFound: true };
   }
 
   try {
     const post = await fetchPostById(postId);
-
-    if (!post) {
-      return { notFound: true };
-    }
+    if (!post) return { notFound: true };
 
     return {
-      props: {
-        post,
-      },
-      revalidate: 300,
+      props: { post },
+      revalidate: 300, // Background revalidation after 5 minutes
     };
   } catch (error) {
-    console.error(`Error fetching post #${params?.id}:`, error);
+    console.error(`Error fetching post #${postId}:`, error);
     return { notFound: true };
   }
 }
 
-// Blog post detail page view
+// Blog Detail Page View Component
 export default function BlogDetailPage({ post }) {
+  if (!post) return null;
+
   const pageTitle = `${post.title} — PaperTrail`;
   const metaDescription =
     post.body.length > 155 ? `${post.body.slice(0, 152)}...` : post.body;
@@ -63,7 +54,7 @@ export default function BlogDetailPage({ post }) {
   const dislikesCount = post.reactions?.dislikes ?? 0;
   const viewsCount = post.views ?? 0;
 
-  // Article JSON-LD Structured Data for Rich Search Snippets
+  // JSON-LD Structured Data for Article SEO
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -93,7 +84,7 @@ export default function BlogDetailPage({ post }) {
       </Head>
 
       <article className="container detail-container">
-        {/* Modern Stylish Back Button */}
+        {/* Back Button */}
         <div className="detail-top-nav">
           <Link href="/blog" className="stylish-back-btn">
             <span className="btn-arrow">&larr;</span>
@@ -101,7 +92,7 @@ export default function BlogDetailPage({ post }) {
           </Link>
         </div>
 
-        {/* Article Header Metadata */}
+        {/* Article Header */}
         <header className="article-header">
           <div className="article-meta-bar">
             <span className="post-id-tag">Story #{String(post.id).padStart(2, '0')}</span>
@@ -113,12 +104,12 @@ export default function BlogDetailPage({ post }) {
 
           <h1 className="article-title">{post.title}</h1>
 
-          {/* Static Tags */}
+          {/* Static Non-Clickable Tags */}
           {post.tags && post.tags.length > 0 && (
             <div className="article-tags">
               {post.tags.map((tag) => (
-                <span key={tag} className="tag-chip">
-                  #{tag}
+                <span key={tag} className="tag-chip non-clickable">
+                  #{String(tag).toLowerCase()}
                 </span>
               ))}
             </div>
@@ -130,7 +121,7 @@ export default function BlogDetailPage({ post }) {
           <p className="article-text">{post.body}</p>
         </div>
 
-        {/* Engagement Metrics with SVG Icons */}
+        {/* Metrics */}
         <footer className="article-footer">
           <div className="engagement-box">
             <div className="metric-item">
@@ -162,3 +153,4 @@ export default function BlogDetailPage({ post }) {
     </Layout>
   );
 }
+
