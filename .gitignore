@@ -1,0 +1,16 @@
+# dependencies
+/node_modules
+/.pnpm
+/.yarn
+
+# Next.js build output & SWC compiler cache
+/.next/
+/out/
+
+# Production build
+/build
+
+# Environment & local files
+.env*.local
+.DS_Store
+*.log
