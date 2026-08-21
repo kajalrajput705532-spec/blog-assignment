@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import BlogCard from '../../components/BlogCard';
@@ -6,23 +6,21 @@ import Pagination from '../../components/Pagination';
 import TagDropdown from '../../components/TagDropdown';
 import { fetchPosts, fetchTags } from '../../lib/api';
 
-// SSR se initial posts aur tags list load kar rhe h
+// SSR (Server-Side Rendering): Har request par initial posts aur tags list load karta hai
 export async function getServerSideProps({ query }) {
   const page = Math.max(1, parseInt(query.page, 10) || 1);
   const limit = 10;
   const skip = (page - 1) * limit;
   const q = typeof query.q === 'string' ? query.q.trim() : '';
 
-  // Single tag filter aur multi tags query dono handle kiya h
-  let selectedTags = [];
-  if (typeof query.tags === 'string' && query.tags.trim()) {
-    selectedTags = query.tags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
-  } else if (typeof query.tag === 'string' && query.tag.trim()) {
-    selectedTags = [query.tag.trim().toLowerCase()];
-  }
+  // URL Query se single/multiple tags extract karna
+  const rawTags = query.tags || query.tag || '';
+  const selectedTags = rawTags
+    ? rawTags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean)
+    : [];
 
   try {
-    // API se posts aur tags fetch kar rhe hai parallel me
+    // API se posts aur tags ko parallel fetch kar rahe hain
     const [data, availableTags] = await Promise.all([
       fetchPosts({ limit, skip, query: q, tags: selectedTags }),
       fetchTags(),
@@ -47,73 +45,71 @@ export async function getServerSideProps({ query }) {
       props: {
         posts: [],
         total: 0,
-        page,
+        page: 1,
         limit,
-        q,
+        q: '',
         selectedTags: [],
         availableTags: [],
-        error: 'Unable to connect to the blog service. Please try again later.',
+        error: 'Unable to load stories. Please try again.',
       },
     };
   }
 }
 
-// Blog listing page main component
+// Blog Listing Page Main Component
 export default function BlogListingPage({
-  posts,
-  total,
-  page,
-  limit,
-  q,
+  posts = [],
+  total = 0,
+  page = 1,
+  limit = 10,
+  q = '',
   selectedTags = [],
   availableTags = [],
-  error,
+  error = null,
 }) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState(q);
 
-  // Search input aur tags update karke URL me query params push kar rhe h
-  const navigateWithFilters = (newSearchQuery = searchTerm, newTags = selectedTags) => {
-    const queryParams = new URLSearchParams();
+  // Jab user browser back/forward kare ya query change ho, search input sync rahe
+  useEffect(() => {
+    setSearchTerm(q);
+  }, [q]);
 
-    if (newSearchQuery.trim()) {
-      queryParams.set('q', newSearchQuery.trim());
-    }
+  // URL Query params update karke route push karne ka helper function
+  const updateFilters = (newSearch, newTags) => {
+    const query = {};
+    const search = (newSearch !== undefined ? newSearch : searchTerm).trim();
+    const tags = newTags !== undefined ? newTags : selectedTags;
 
-    if (newTags && newTags.length > 0) {
-      if (newTags.length === 1) {
-        queryParams.set('tag', newTags[0]);
-      } else {
-        queryParams.set('tags', newTags.join(','));
-      }
-    }
+    if (search) query.q = search;
+    if (tags.length === 1) query.tag = tags[0];
+    else if (tags.length > 1) query.tags = tags.join(',');
 
-    router.push(`/blog?${queryParams.toString()}`);
+    // scroll: false se pagination/filter change par page jump nahi karta
+    router.push({ pathname: '/blog', query }, undefined, { scroll: false });
   };
 
+  // Keyword search submit handler
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    navigateWithFilters(searchTerm, selectedTags);
+    updateFilters(searchTerm);
   };
 
-  const handleApplyTagsFromDropdown = (newTags) => {
-    navigateWithFilters(searchTerm, newTags);
-  };
-
-  // Sabhi active filters reset karne ke liye
+  // Sabhi active filters reset/clear karne ka handler
   const handleClearFilters = () => {
     setSearchTerm('');
-    router.push('/blog');
+    router.push('/blog', undefined, { scroll: false });
   };
 
-  const hasPosts = posts && posts.length > 0;
+  const hasActiveFilters = Boolean(q || selectedTags.length > 0);
+  const hasPosts = posts.length > 0;
 
   return (
     <Layout
       title="Blog — PaperTrail"
       description="Explore practical articles, technical guides, and stories on web development and technology."
     >
-      {/* Top Header Banner */}
+      {/* Hero Banner */}
       <section className="hero-section">
         <div className="container hero-container">
           <div className="hero-content">
@@ -134,7 +130,7 @@ export default function BlogListingPage({
 
       {/* Main Listing Section */}
       <section className="container listing-section">
-        {/* Search aur Tag Filter Toolbar */}
+        {/* Toolbar: Tag Dropdown & Search Bar */}
         <div className="listing-toolbar">
           <div className="toolbar-left">
             <h2 className="section-title">Latest Articles</h2>
@@ -144,14 +140,12 @@ export default function BlogListingPage({
           </div>
 
           <div className="toolbar-controls">
-            {/* Tag Filter Dropdown */}
             <TagDropdown
               tags={availableTags}
               selectedTags={selectedTags}
-              onApplyTags={handleApplyTagsFromDropdown}
+              onApplyTags={(tags) => updateFilters(undefined, tags)}
             />
 
-            {/* Keyword Search Form */}
             <form onSubmit={handleSearchSubmit} className="search-form" role="search">
               <input
                 type="text"
@@ -168,8 +162,8 @@ export default function BlogListingPage({
           </div>
         </div>
 
-        {/* Active Filter Bar (jab filter applied ho tab dikhega) */}
-        {(q || selectedTags.length > 0) && (
+        {/* Active Filters Summary */}
+        {hasActiveFilters && (
           <div className="active-filter-banner">
             <div className="active-tags-summary">
               <span>Showing results for </span>
@@ -186,41 +180,41 @@ export default function BlogListingPage({
               )}
             </div>
 
-            <button onClick={handleClearFilters} className="clear-filter-btn">
+            <button onClick={handleClearFilters} className="clear-filter-btn" type="button">
               Clear All Filters &times;
             </button>
           </div>
         )}
 
-        {/* Posts List & States */}
+        {/* Error State */}
         {error ? (
           <div className="state-card error-state">
             <div className="state-icon">⚠️</div>
             <h3>Something went wrong</h3>
             <p>{error}</p>
-            <button onClick={() => router.replace(router.asPath)} className="retry-btn">
+            <button onClick={() => router.replace(router.asPath)} className="retry-btn" type="button">
               Retry Loading
             </button>
           </div>
         ) : !hasPosts ? (
+          /* Empty State */
           <div className="state-card empty-state">
             <div className="state-icon">🔍</div>
             <h3>No stories found</h3>
-            <p>We couldn&apos;t find any posts matching your selected tags or search criteria. Try different filters.</p>
-            <button onClick={handleClearFilters} className="clear-filter-btn">
+            <p>We couldn&apos;t find any posts matching your selected filters. Try searching for something else.</p>
+            <button onClick={handleClearFilters} className="clear-filter-btn" type="button">
               Reset Search &amp; Filters
             </button>
           </div>
         ) : (
+          /* Posts Grid & Pagination */
           <>
-            {/* Posts Grid Layout */}
             <div className="posts-grid">
               {posts.map((post) => (
                 <BlogCard key={post.id} post={post} />
               ))}
             </div>
 
-            {/* Pagination Controls */}
             <Pagination
               page={page}
               total={total}

@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import Footer from './Footer';
 
 // Main page layout component (Header, Head metadata, Footer)
 export default function Layout({
@@ -47,18 +48,8 @@ export default function Layout({
       {/* Page content */}
       <main className="main-content">{children}</main>
 
-      {/* Footer bar */}
-      <footer className="site-footer">
-        <div className="container footer-container">
-          <div className="footer-left">
-            <span className="footer-brand">PaperTrail Blog</span>
-            <span className="footer-subtitle">Frontend Developer Assignment Submission</span>
-          </div>
-          <div className="footer-right">
-            <span>Built with Next.js &amp; JavaScript.</span>
-          </div>
-        </div>
-      </footer>
+      {/* Reusable Footer Component */}
+      <Footer />
     </div>
   );
 }

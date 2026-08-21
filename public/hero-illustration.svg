@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#314c3d" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#e56b4d" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="bookCover" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#23382c"/>
+      <stop offset="100%" stop-color="#314c3d"/>
+    </linearGradient>
+    <linearGradient id="pageGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f5f2e9"/>
+      <stop offset="50%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#faf8f3"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f08365"/>
+      <stop offset="100%" stop-color="#e56b4d"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#17201d" flood-opacity="0.15"/>
+    </filter>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient Backdrop Circles -->
+  <circle cx="200" cy="160" r="130" fill="url(#bgGrad)"/>
+  <circle cx="310" cy="90" r="45" fill="#fceee9" opacity="0.7"/>
+  <circle cx="90" cy="220" r="35" fill="#eef2eb" opacity="0.8"/>
+  <circle cx="200" cy="150" r="90" fill="#ffffff" opacity="0.6"/>
+
+  <!-- Floating Sparkles -->
+  <path d="M320 60 L323 70 L333 73 L323 76 L320 86 L317 76 L307 73 L317 70 Z" fill="#e56b4d" opacity="0.75"/>
+  <path d="M75 120 L77 127 L84 129 L77 131 L75 138 L73 131 L66 129 L73 127 Z" fill="#314c3d" opacity="0.6"/>
+  <circle cx="105" cy="85" r="3" fill="#e56b4d" opacity="0.5"/>
+  <circle cx="305" cy="235" r="4" fill="#314c3d" opacity="0.4"/>
+
+  <!-- Open Journal Book (with shadow) -->
+  <g filter="url(#softShadow)">
+    <!-- Book Back Cover -->
+    <path d="M68 206 C 130 216, 185 204, 200 200 C 215 204, 270 216, 332 206 C 336 210, 332 216, 328 218 C 268 228, 215 216, 200 212 C 185 216, 132 228, 72 218 Z" fill="url(#bookCover)"/>
+    
+    <!-- Left Page Base -->
+    <path d="M72 90 C 130 80, 185 92, 198 96 L 198 202 C 185 198, 130 186, 72 196 Z" fill="#ece8dc"/>
+    <path d="M75 92 C 132 83, 186 94, 198 98 L 198 200 C 186 196, 132 185, 75 194 Z" fill="url(#pageGrad)"/>
+    
+    <!-- Left Page Lines -->
+    <line x1="95" y1="116" x2="175" y2="110" stroke="#d5dcd6" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="95" y1="132" x2="175" y2="126" stroke="#d5dcd6" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="95" y1="148" x2="165" y2="142" stroke="#d5dcd6" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="95" y1="164" x2="150" y2="158" stroke="#d5dcd6" stroke-width="2.5" stroke-linecap="round"/>
+    
+    <!-- Left Page Small Decorative Stamp -->
+    <rect x="95" y="100" width="22" height="6" rx="3" fill="#e56b4d" opacity="0.3"/>
+
+    <!-- Right Page Base -->
+    <path d="M328 90 C 270 80, 215 92, 202 96 L 202 202 C 215 198, 270 186, 328 196 Z" fill="#ece8dc"/>
+    <path d="M325 92 C 268 83, 214 94, 202 98 L 202 200 C 214 196, 268 185, 325 194 Z" fill="url(#pageGrad)"/>
+    
+    <!-- Right Page Lines -->
+    <line x1="225" y1="110" x2="305" y2="116" stroke="#d5dcd6" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="225" y1="126" x2="305" y2="132" stroke="#d5dcd6" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="225" y1="142" x2="295" y2="148" stroke="#d5dcd6" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="225" y1="158" x2="275" y2="164" stroke="#d5dcd6" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Book Center Spine -->
+    <path d="M197 96 Q 200 98 203 96 L 203 203 Q 200 205 197 203 Z" fill="#23382c" opacity="0.35"/>
+    <line x1="200" y1="96" x2="200" y2="202" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+  </g>
+
+  <!-- Botanical Branch Accents -->
+  <g stroke="#314c3d" stroke-width="2" stroke-linecap="round" fill="none">
+    <path d="M60 210 Q 50 170 65 140"/>
+    <path d="M63 175 Q 52 170 54 162" fill="#314c3d" opacity="0.7"/>
+    <path d="M60 155 Q 50 148 55 142" fill="#314c3d" opacity="0.7"/>
+    <path d="M65 140 Q 60 130 68 126" fill="#314c3d" opacity="0.7"/>
+
+    <path d="M340 210 Q 350 170 335 140"/>
+    <path d="M337 175 Q 348 170 346 162" fill="#e56b4d" opacity="0.6"/>
+    <path d="M340 155 Q 350 148 345 142" fill="#e56b4d" opacity="0.6"/>
+    <path d="M335 140 Q 340 130 332 126" fill="#e56b4d" opacity="0.6"/>
+  </g>
+
+  <!-- Floating Fountain Pen -->
+  <g transform="rotate(28 260 145)" filter="url(#softShadow)">
+    <!-- Pen Barrel -->
+    <rect x="252" y="70" width="12" height="75" rx="6" fill="url(#bookCover)"/>
+    <!-- Gold Ring -->
+    <rect x="251" y="98" width="14" height="4" rx="1.5" fill="#f0c27b"/>
+    <rect x="251" y="140" width="14" height="3" rx="1" fill="#f0c27b"/>
+    <!-- Pen Nib -->
+    <path d="M253 145 L 263 145 L 258 160 Z" fill="#d4af37"/>
+    <polygon points="257,152 259,152 258,160" fill="#17201d"/>
+    <!-- Pen Clip -->
+    <rect x="256" y="76" width="3" height="24" rx="1.5" fill="#f0c27b"/>
+  </g>
+
+  <!-- Floating Badge / Star Pin -->
+  <g transform="translate(290, 75)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="46" height="24" rx="12" fill="url(#accentGrad)"/>
+    <text x="23" y="16" font-family="'DM Sans', sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">✦ NEW</text>
+  </g>
+
+  <!-- Small Floating Tag Badge -->
+  <g transform="translate(62, 78)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="62" height="22" rx="11" fill="#ffffff" stroke="#dedfd9" stroke-width="1"/>
+    <text x="31" y="15" font-family="'DM Sans', sans-serif" font-size="10" font-weight="600" fill="#314c3d" text-anchor="middle">#stories</text>
+  </g>
+</svg>
